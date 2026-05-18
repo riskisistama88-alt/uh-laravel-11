@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Ulangan Harian Laravel</title>
+  <style>
+    :root {
+      --bg-color: #f4f1ea;
+      --text-main: #3d3b38;
+      --primary: #6b705c;
+      --secondary: #a5a58d;
+      --accent: #cb997e;
+      --white: #ffffff;
+      --border: #ddbea9;
+    }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--white);
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+      border-top: 6px solid var(--primary);
+    }
+    h1, h2 {
+      text-align: center;
+      color: var(--primary);
+    }
+    p.subtitle {
+      text-align: center;
+      color: var(--secondary);
+      margin-bottom: 30px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      box-sizing: border-box;
+      font-size: 16px;
+    }
+    .question-block {
+      margin-bottom: 25px;
+      padding: 15px;
+      background-color: #faf9f7;
+      border-left: 4px solid var(--secondary);
+      border-radius: 4px;
+    }
+    .options label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: normal;
+      cursor: pointer;
+    }
+    .btn {
+      background-color: var(--primary);
+      color: var(--white);
+      border: none;
+      padding: 12px 25px;
+      font-size: 16px;
+      border-radius: 5px;
+      cursor: pointer;
+      display: block;
+      width: 100%;
+      transition: background 0.3s;
+    }
+    .btn:hover {
+      background-color: #5a5f4d;
+    }
+    #resultContainer {
+      display: none;
+      text-align: center;
+      padding: 40px 20px;
+    }
+    .score-display {
+      font-size: 48px;
+      font-weight: bold;
+      color: var(--accent);
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container" id="quizContainer">
+  <h1>Ulangan Harian</h1>
+  <p class="subtitle">Materi: Dasar Framework, MVC, dan Laravel</p>
+  
+  <div class="form-group">
+    <label for="studentName">Nama Lengkap Siswa:</label>
+    <input type="text" id="studentName" placeholder="Masukkan nama lengkap..." required>
+  </div>
+
+  <div id="questionsArea"></div>
+
+  <button class="btn" onclick="submitQuiz()">Kirim Jawaban & Lihat Nilai</button>
+</div>
+
+<div class="container" id="resultContainer">
+  <h2>Hasil Ulangan</h2>
+  <p>Terima kasih, <strong id="resName"></strong>.</p>
+  <p>Nilai Anda adalah:</p>
+  <div class="score-display" id="resScore">0</div>
+  <p id="resMessage"></p>
+  <button class="btn" onclick="location.reload()" style="background-color: var(--secondary); width: auto; margin: 20px auto;">Kembali</button>
+</div>
+
+<script>
+  const quizData = [
+    { q: "1. Framework merepresentasikan interaksi antar komponen dalam bentuk...", opts: ["A. File statis HTML dan CSS", "B. Kelas abstrak dan mekanisme instances kelas", "C. Potongan kode prosedural acak", "D. Database relasional tunggal", "E. Jaringan client-server independen"], ans: 1 },
+    { q: "2. Prinsip Inversion of Control di dunia software engineering sering dikenal dengan istilah...", opts: ["A. Keep It Simple, Stupid (KISS)", "B. Don't Repeat Yourself (DRY)", "C. Hollywood Principle", "D. Object Oriented Principle", "E. Single Responsibility"], ans: 2 },
+    { q: "3. Framework PHP manakah yang saat ini paling populer?", opts: ["A. Phalcon", "B. CodeIgniter", "C. Symfony2", "D. Laravel", "E. Yii"], ans: 3 },
+    { q: "4. Komponen pertama yang bertugas menerima request user dari browser pada arsitektur Laravel adalah...", opts: ["A. Model", "B. View", "C. Routing", "D. Database", "E. Command"], ans: 2 },
+    { q: "5. Setelah Controller menerima perintah dari Routing, apa tugas utamanya jika membutuhkan akses data?", opts: ["A. Memproses tampilan langsung", "B. Berinteraksi dengan Data Model", "C. Membuat direktori", "D. Instalasi pustaka", "E. Mengubah skema database"], ans: 1 },
+    { q: "6. Peran yang mewakili informasi untuk disajikan kepada user pada MVC adalah...", opts: ["A. Model", "B. Controller", "C. View", "D. Routing", "E. Helper"], ans: 2 },
+    { q: "7. Di dalam struktur direktori Laravel, di manakah letak file konfigurasi routing (misal routes/web.php pada versi baru)?", opts: ["A. public", "B. vendor", "C. routes", "D. app", "E. storage"], ans: 2 },
+    { q: "8. Folder tempat menyimpan desain tampilan (view) di Laravel adalah...", opts: ["A. resources/views", "B. app/models", "C. database/migrations", "D. public/css", "E. storage/framework"], ans: 0 },
+    { q: "9. Pola pengembangan perangkat lunak yang memisahkan logika aplikasi dengan presentasinya disebut...", opts: ["A. OOP", "B. MVC", "C. Client-Server", "D. PHP", "E. API"], ans: 1 },
+    { q: "10. Struktur data aplikasi dan interaksi ke database dalam MVC ditangani oleh...", opts: ["A. View", "B. Controller", "C. Model", "D. Router", "E. Dispatcher"], ans: 2 },
+    { q: "11. Perintah Artisan berbasis command line untuk menjalankan local development server adalah...", opts: ["A. php artisan serve", "B. php artisan run", "C. php artisan start", "D. php artisan boot", "E. php artisan up"], ans: 0 },
+    { q: "12. File manakah yang digunakan untuk menyimpan konfigurasi environment dan koneksi database di Laravel?", opts: ["A. config.php", "B. database.php", "C. .env", "D. settings.json", "E. env.example"], ans: 2 },
+    { q: "13. Sintaks Artisan untuk membuat sebuah Controller baru bernama SiswaController adalah...", opts: ["A. php artisan make:controller SiswaController", "B. php artisan create:controller SiswaController", "C. php artisan new:controller SiswaController", "D. php artisan generate:controller SiswaController", "E. php artisan build:controller SiswaController"], ans: 0 },
+    { q: "14. Sistem templating engine bawaan yang disediakan oleh Laravel adalah...", opts: ["A. Twig", "B. Smarty", "C. Blade", "D. Mustache", "E. Pug"], ans: 2 },
+    { q: "15. Sintaks Blade yang digunakan untuk menampilkan (echo) isi dari variabel PHP ke dalam HTML adalah...", opts: ["A. {!! $var !!}", "B. {{ $var }}", "C. <?=$var?>", "D. @echo($var)", "E. [ $var ]"], ans: 1 },
+    { q: "16. Laravel menggunakan teknik pemetaan objek-relasional (ORM) yang bernama...", opts: ["A. Doctrine", "B. ActiveRecord", "C. Eloquent", "D. Hibernate", "E. Propel"], ans: 2 },
+    { q: "17. Fitur Laravel yang bertindak seperti 'version control' untuk database, memungkinkan modifikasi skema tabel dengan mudah disebut...", opts: ["A. Seeding", "B. Factories", "C. Eloquent", "D. Migrations", "E. Schema Builder"], ans: 3 },
+    { q: "18. Method yang dijalankan di dalam file Migration ketika kita mengeksekusi perintah 'php artisan migrate' adalah...", opts: ["A. run()", "B. down()", "C. up()", "D. execute()", "E. create()"], ans: 2 },
+    { q: "19. Jika kita ingin menangkap request URL '/siswa' menggunakan method GET, sintaks routing yang benar adalah...", opts: ["A. Route::post('/siswa', ...)", "B. Route::get('/siswa', ...)", "C. Route::put('/siswa', ...)", "D. Route::view('/siswa', ...)", "E. Route::match('/siswa', ...)"], ans: 1 },
+    { q: "20. Secara default, direktori tempat menyimpan file Controller di Laravel berada di...", opts: ["A. app/Controllers", "B. resources/Controllers", "C. app/Http/Controllers", "D. routes/Controllers", "E. vendor/Controllers"], ans: 2 },
+    { q: "21. Perintah untuk membuat Model beserta file Migration-nya secara bersamaan adalah...", opts: ["A. php artisan make:model Nama -m", "B. php artisan make:model Nama --migration", "C. php artisan make:model Nama -c", "D. Jawaban A dan B benar", "E. php artisan new:model Nama -all"], ans: 3 },
+    { q: "22. Lapisan penengah yang memfilter request HTTP yang masuk ke aplikasi (misalnya untuk mengecek apakah user sudah login) disebut...", opts: ["A. Middleware", "B. Validation", "C. Provider", "D. Guard", "E. Session"], ans: 0 },
+    { q: "23. Pada Eloquent, method yang digunakan untuk mengambil semua baris data dari sebuah tabel adalah...", opts: ["A. get()", "B. all()", "C. fetch()", "D. selectAll()", "E. findAll()"], ans: 1 },
+    { q: "24. Sintaks perulangan pada file Blade untuk menampilkan daftar data array adalah...", opts: ["A. @for", "B. @while", "C. @foreach", "D. @loop", "E. @repeat"], ans: 2 },
+    { q: "25. Jika kita ingin menerapkan percabangan kondisi (If-Else) di dalam file Blade, sintaks yang tepat adalah...", opts: ["A. @if ... @endif", "B. {{ if }} ... {{ endif }}", "C. #if ... #endif", "D. <?php if: ?>", "E. @condition ... @endcondition"], ans: 0 },
+    { q: "26. Untuk memanggil file aset seperti CSS, JavaScript, atau gambar pada Blade, sebaiknya file tersebut disimpan di direktori...", opts: ["A. resources", "B. public", "C. storage", "D. app", "E. vendor"], ans: 1 },
+    { q: "27. Cara mengembalikan (return) sebuah View yang bernama 'profil.blade.php' dari dalam Controller adalah...", opts: ["A. return display('profil');", "B. return make('profil');", "C. return view('profil');", "D. return html('profil');", "E. return page('profil');"], ans: 2 },
+    { q: "28. *Dependency manager* standar pada PHP yang digunakan untuk menginstal framework Laravel adalah...", opts: ["A. NPM", "B. Yarn", "C. Artisan", "D. Composer", "E. PIP"], ans: 3 },
+    { q: "29. Fitur Laravel yang memungkinkan kita untuk mengisi tabel database dengan data *dummy* atau uji coba secara otomatis adalah...", opts: ["A. Migration", "B. Seeder", "C. Schema", "D. Tinker", "E. Eloquent"], ans: 1 },
+    { q: "30. Dalam mendefinisikan relasi 'Satu ke Banyak' (One-to-Many) pada Model Eloquent, kita menggunakan method...", opts: ["A. belongsTo()", "B. hasOne()", "C. hasMany()", "D. belongsToMany()", "E. morphMany()"], ans: 2 },
+    { q: "31. Perintah untuk membuat class Seeder baru bernama SiswaSeeder adalah...", opts: ["A. php artisan generate:seeder SiswaSeeder", "B. php artisan make:seeder SiswaSeeder", "C. php artisan db:seed SiswaSeeder", "D. php artisan create:seeder SiswaSeeder", "E. php artisan new:seeder SiswaSeeder"], ans: 1 },
+    { q: "32. Cara paling singkat menggunakan Eloquent untuk mencari data berdasarkan Primary Key (ID) adalah...", opts: ["A. Model::search($id)", "B. Model::whereId($id)", "C. Model::get($id)", "D. Model::find($id)", "E. Model::first($id)"], ans: 3 },
+    { q: "33. *Resource Controller* pada Laravel secara otomatis menyediakan method untuk keperluan...", opts: ["A. Autentikasi User", "B. Operasi CRUD (Create, Read, Update, Delete)", "C. Migrasi Database", "D. Manipulasi Gambar", "E. Konfigurasi Server"], ans: 1 },
+    { q: "34. Fitur keamanan yang digunakan untuk melindungi form dari serangan manipulasi lintas situs (Cross-Site Request Forgery) pada Laravel adalah...", opts: ["A. XSS Protection", "B. SQL Injection Filter", "C. CSRF Token", "D. CORS Middleware", "E. Hash Password"], ans: 2 },
+    { q: "35. Sintaks yang harus ditambahkan di dalam tag <form> pada file Blade agar form tidak terkena error 419 Page Expired adalah...", opts: ["A. @token", "B. @security", "C. @csrf", "D. @auth", "E. @protect"], ans: 2 },
+    { q: "36. File untuk mendefinisikan *routing* yang akan diakses melalui antarmuka web (browser) adalah...", opts: ["A. routes/api.php", "B. routes/console.php", "C. routes/web.php", "D. routes/channels.php", "E. routes/http.php"], ans: 2 },
+    { q: "37. Method pada Controller standar yang biasanya digunakan untuk menampilkan form tambah data baru adalah...", opts: ["A. index()", "B. create()", "C. store()", "D. show()", "E. edit()"], ans: 1 },
+    { q: "38. Saat membuat Migration, tipe data string (setara dengan VARCHAR di MySQL) dideklarasikan dengan sintaks...", opts: ["A. $table->varchar('nama')", "B. $table->text('nama')", "C. $table->string('nama')", "D. $table->char('nama')", "E. $table->words('nama')"], ans: 2 },
+    { q: "39. Untuk membatalkan seluruh proses migration yang terakhir kali dijalankan (rollback), kita menggunakan perintah...", opts: ["A. php artisan migrate:rollback", "B. php artisan migrate:undo", "C. php artisan migrate:down", "D. php artisan migrate:reverse", "E. php artisan migrate:clear"], ans: 0 },
+    { q: "40. Proses memeriksa apakah input form sudah sesuai aturan (misalnya form nama tidak boleh kosong) pada Laravel disebut...", opts: ["A. Sanitize", "B. Validation", "C. Authentication", "D. Authorization", "E. Verification"], ans: 1 },
+    { q: "41. Direktif Blade yang sering digunakan untuk menangkap dan menampilkan pesan error validasi input secara spesifik adalah...", opts: ["A. @error('field')", "B. @invalid('field')", "C. @validate('field')", "D. @catch('field')", "E. @fail('field')"], ans: 0 },
+    { q: "42. Setelah menyimpan data ke database, cara untuk mengalihkan (*redirect*) pengguna kembali ke halaman index secara benar adalah...", opts: ["A. return route('index');", "B. return view('index');", "C. return redirect()->route('index');", "D. return back('index');", "E. return url('index');"], ans: 2 },
+    { q: "43. Untuk menyimpan data sementara di *session* (misalnya pesan sukses setelah menyimpan data) yang hanya berlaku satu kali *request*, kita menggunakan...", opts: ["A. Session::put()", "B. Session::set()", "C. Flash Data", "D. Cache Data", "E. Cookie"], ans: 2 },
+    { q: "44. Helper function 'dd()' di Laravel sangat berguna untuk proses *debugging*. 'dd' merupakan singkatan dari...", opts: ["A. Data Debug", "B. Dump and Die", "C. Die and Debug", "D. Display Data", "E. Database Dump"], ans: 1 },
+    { q: "45. Method yang digunakan untuk memproses perintah simpan (Insert) *instance* model ke database menggunakan Eloquent adalah...", opts: ["A. insert()", "B. push()", "C. add()", "D. save()", "E. commit()"], ans: 3 },
+    { q: "46. Perintah berbasis interaktif pada terminal yang memungkinkan kita mengeksekusi kode PHP dan menguji model Eloquent secara langsung disebut...", line: "Laravel Tinker", opts: ["A. Artisan Shell", "B. Laravel CLI", "C. PHP Interactive", "D. Laravel Tinker", "E. Composer Execute"], ans: 3 },
+    { q: "47. Dalam arsitektur MVC, jika kita ingin membuat fungsionalitas hapus data, method pada Resource Controller yang idealnya menangani logika ini adalah...", opts: ["A. remove()", "B. delete()", "C. destroy()", "D. erase()", "E. drop()"], ans: 2 },
+    { q: "48. Fitur yang memungkinkan record dianggap terhapus, namun datanya masih tetap ada di tabel database dan tidak benar-benar hilang secara permanen disebut...", opts: ["A. SoftDeletes", "B. SafeDelete", "C. Trashable", "D. Archive", "E. HideRecord"], ans: 0 },
+    { q: "49. Konsep *Dependency Injection Container* di Laravel yang bertugas mengelola siklus hidup *class* dan resolusi *dependency* adalah...", opts: ["A. Facades", "B. Service Provider", "C. Service Container", "D. Contracts", "E. Middleware"], ans: 2 },
+    { q: "50. Jika kita mengalami kendala konfigurasi yang tersimpan di sistem tidak mau memperbarui *environment variable*, perintah untuk menghapus *cache* konfigurasinya adalah...", opts: ["A. php artisan cache:clear", "B. php artisan view:clear", "C. php artisan config:clear", "D. php artisan route:clear", "E. php artisan optimize:clear"], ans: 2 }
+  ];
+
+  const questionsArea = document.getElementById('questionsArea');
+  
+  // Render Questions
+  quizData.forEach((item, index) => {
+    let block = document.createElement('div');
+    block.className = 'question-block';
+    
+    let qText = document.createElement('label');
+    qText.textContent = item.q;
+    block.appendChild(qText);
+    
+    let optionsDiv = document.createElement('div');
+    optionsDiv.className = 'options';
+    
+    item.opts.forEach((optText, optIndex) => {
+      let optLabel = document.createElement('label');
+      let optInput = document.createElement('input');
+      optInput.type = 'radio';
+      optInput.name = 'q' + index;
+      optInput.value = optIndex;
+      
+      optLabel.appendChild(optInput);
+      optLabel.appendChild(document.createTextNode(' ' + optText));
+      optionsDiv.appendChild(optLabel);
+    });
+    
+    block.appendChild(optionsDiv);
+    questionsArea.appendChild(block);
+  });
+
+  function submitQuiz() {
+    const studentName = document.getElementById('studentName').value.trim();
+    if (!studentName) {
+      alert("Harap masukkan nama lengkap Anda terlebih dahulu!");
+      return;
+    }
+
+    let correctCount = 0;
+    let allAnswered = true;
+
+    for (let i = 0; i < quizData.length; i++) {
+      const selected = document.querySelector(`input[name="q${i}"]:checked`);
+      if (!selected) {
+        allAnswered = false;
+        break;
+      }
+      if (parseInt(selected.value) === quizData[i].ans) {
+        correctCount++;
+      }
+    }
+
+    if (!allAnswered) {
+      alert("Harap jawab semua soal terlebih dahulu!");
+      return;
+    }
+
+    // Setiap soal bernilai 2 poin (50 soal x 2 = 100)
+    const finalScore = correctCount * 2;
+    
+    document.getElementById('quizContainer').style.display = 'none';
+    document.getElementById('resultContainer').style.display = 'block';
+    
+    document.getElementById('resName').textContent = studentName;
+    document.getElementById('resScore').textContent = finalScore;
+    
+    const msgEl = document.getElementById('resMessage');
+    if(finalScore >= 80) {
+      msgEl.textContent = "Luar biasa! Pemahaman Anda tentang framework dan pemrograman web sangat kuat.";
+    } else if(finalScore >= 60) {
+      msgEl.textContent = "Cukup baik, tingkatkan lagi pemahaman terkait sintaks dan praktik dasar sistem.";
+    } else {
+      msgEl.textContent = "Terus semangat belajar! Silakan evaluasi dan ulangi kembali modul pembelajaran yang ada.";
+    }
+  }
+</script>
+
+</body>
+</html>
